@@ -2,102 +2,134 @@ import numpy as np
 from math import cos, sin, radians, atan2, atan, tanh, sqrt, degrees
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
 
 # Tiempo
 T = 100
-num_points = 500
+num_pun= 600
 
-# Localizacion de la estacion de trabajo
-ex, ey, ez = 0, 0, 0  # mm
+# Localizacion de la estacion de trabajo 
+ex,ey,ez = 0, 0, 0
 
-# Parametros de emplazamiento de tarea
-tx, ty, tz, phi = 804.5, 499.9, 663.1, -9.9  # mm, grados
+# Parametros del emplazamiento de la tarea
+tx, ty, tz = 804.5, 500, 663.1
 
 # Parametros del robot
-d2, d3, d4, r4 = 150, 600, 200, 640  # mm
+d2, d3, d4, r4 = 150, 600, 200, 640 # mm
 
-bR, eo = 450, 100
+# Base del robot
+bR = 450 #mm
 
 # Parametros del organo terminal
-rho, dhx, dhy, dhz = -22, -49.8, 0, 504  # Grados, mm
+dhx, dhy, dhz, rho = -49.8, 0, 504,-22
 
 # Limites articulares
-joint_limits = {
-    'th1': (-170, 170),
-    'th2': (-90, 160),
-    'th3': (-180, 267),
-    'th4': (-190, 190),
-    'th5': (-270, 270),
-    'th6': (-360, 360)
-}
+limth1 = [-170, 170]
+limth2 = [- 90, 160]
+limth3 = [-180, 267]
+limth4 = [-190, 190]
+limth5 = [-270, 270]
+limth6 = [-360, 360]
 
-# Velocidades maximas
-thp_max = {'th1': 230, 'th2': 225, 'th3': 230, 'th4': 430, 'th5': 430, 'th6': 630}
+th1mean = (max(limth1)+min(limth1))/2
+th2mean = (max(limth2)+min(limth2))/2
+th3mean = (max(limth3)+min(limth3))/2
+th4mean = (max(limth4)+min(limth4))/2
+th5mean = (max(limth5)+min(limth5))/2
+th6mean = (max(limth6)+min(limth6))/2
 
-# Variables articulares en grados
+delth1mx = abs(max(limth1)-th1mean)
+delth2mx = abs(max(limth2)-th2mean)
+delth3mx = abs(max(limth3)-th3mean)
+delth4mx = abs(max(limth4)-th4mean)
+delth5mx = abs(max(limth5)-th5mean)
+delth6mx = abs(max(limth6)-th6mean)
 
-th1g=np.zeros(num_points)
-th2g=np.zeros(num_points)
-th3g=np.zeros(num_points)
-th4g=np.zeros(num_points)
-th5g=np.zeros(num_points)
-th6g=np.zeros(num_points)
+th1pmax = 230
+th2pmax = 225
+th3pmax = 230
+th4pmax = 430
+th5pmax = 430
+th6pmax = 630
 
-th1p=np.zeros(num_points)
-th2p=np.zeros(num_points)
-th3p=np.zeros(num_points)
-th4p=np.zeros(num_points)
-th5p=np.zeros(num_points)
-th6p=np.zeros(num_points)
+th1g = np.zeros(num_pun)
+th2g = np.zeros(num_pun)
+th3g = np.zeros(num_pun)
+th4g = np.zeros(num_pun)
+th5g = np.zeros(num_pun)
+th6g = np.zeros(num_pun)
 
-time=np.zeros(num_points)
+th1p = np.zeros(num_pun)
+th2p = np.zeros(num_pun)
+th3p = np.zeros(num_pun)
+th4p = np.zeros(num_pun)
+th5p = np.zeros(num_pun)
+th6p = np.zeros(num_pun)
 
-x0g = np.zeros(num_points)
-y0g = np.zeros(num_points)
-z0g = np.zeros(num_points)
+x0g = np.zeros(num_pun)
+x1g = np.zeros(num_pun)
+x2g = np.zeros(num_pun)
+x3g = np.zeros(num_pun)
+x4g = np.zeros(num_pun)
+x5g = np.zeros(num_pun)
+x6g = np.zeros(num_pun)
+xhg = np.zeros(num_pun)
+xdg = np.zeros(num_pun)
+xdpg = np.zeros(num_pun)
 
-x1g = np.zeros(num_points)
-y1g = np.zeros(num_points)
-z1g = np.zeros(num_points)
+y0g = np.zeros(num_pun)
+y1g = np.zeros(num_pun)
+y2g = np.zeros(num_pun)
+y3g = np.zeros(num_pun)
+y4g = np.zeros(num_pun)
+y5g = np.zeros(num_pun)
+y6g = np.zeros(num_pun)
+yhg = np.zeros(num_pun)
+ydg = np.zeros(num_pun)
+ydpg = np.zeros(num_pun)
 
-x2g = np.zeros(num_points)
-y2g = np.zeros(num_points)
-z2g = np.zeros(num_points)
+z0g = np.zeros(num_pun)
+z1g = np.zeros(num_pun)
+z2g = np.zeros(num_pun)
+z3g = np.zeros(num_pun)
+z4g = np.zeros(num_pun)
+z5g = np.zeros(num_pun)
+z6g = np.zeros(num_pun)
+zhg = np.zeros(num_pun)
+zdg = np.zeros(num_pun)
+zdpg = np.zeros(num_pun)
 
-x3g = np.zeros(num_points)
-y3g = np.zeros(num_points)
-z3g = np.zeros(num_points)
+tg = np.zeros(num_pun)
 
-x4g = np.zeros(num_points)
-y4g = np.zeros(num_points)
-z4g = np.zeros(num_points)
+r1xg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r2xg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r3xg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r4xg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r5xg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r6xg = [np.zeros((2, 1)) for _ in range(num_pun)]
+rhxg = [np.zeros((2, 1)) for _ in range(num_pun)]
 
-x5g = np.zeros(num_points)
-y5g = np.zeros(num_points)
-z5g = np.zeros(num_points)
+r1yg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r2yg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r3yg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r4yg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r5yg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r6yg = [np.zeros((2, 1)) for _ in range(num_pun)]
+rhyg = [np.zeros((2, 1)) for _ in range(num_pun)]
 
-x6g = np.zeros(num_points)
-y6g = np.zeros(num_points)
-z6g = np.zeros(num_points)
-
-xhg = np.zeros(num_points)
-yhg = np.zeros(num_points)
-zhg = np.zeros(num_points)
-
-xdg = np.zeros(num_points)
-ydg = np.zeros(num_points)
-zdg = np.zeros(num_points)
-
-xdpg = np.zeros(num_points)
-ydpg = np.zeros(num_points)
-zdpg = np.zeros(num_points)
-
-tg = np.linspace(0,T,num_points)
+r1zg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r2zg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r3zg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r4zg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r5zg = [np.zeros((2, 1)) for _ in range(num_pun)]
+r6zg = [np.zeros((2, 1)) for _ in range(num_pun)]
+rhzg = [np.zeros((2, 1)) for _ in range(num_pun)]
 
 # Parametros del movimiento del robot
-e1 = 1
-e2 = 1 
-e4 = 1
+# solucion del modelo inverso de posicion del robot
+
+# Epsilon
+e1, e2, e4 = 1, 1, 1
 
 # Matriz del marco 6 al marco de la herramienta
 rho_rad = radians(rho)
@@ -129,14 +161,14 @@ TEt = np.array([
 T0t = np.dot(np.linalg.inv(TE0), TEt)
 R0T = T0t[:3, :3]
 
-# Especificacion de los parametros de la ruta deseada de la herramienta
+# Especificacion de la ruta deseada de la herramienta
 xinih = 300
-# delx = 0
+delx = 0
 
 yinih = 10
-# dely = 150
+dely = 150
 
-zinih = 100
+zinih = 10
 delz = 10
 
 # Orientacion en angulos de Euler
@@ -162,10 +194,9 @@ p = 10
 h = 60
 dt = 0.001
 
+for i in range(num_pun):
+    t = T*i/num_pun
 
-for i in range(num_points):
-    t = T * i / num_points
-    
     # Calcular la función cicloidal del tiempo
     funct = (t/T) - (1/(2 * np.pi)) * (sin(2 * np.pi * t / T))
     funtp = (1/T) * (1 - cos(2 * np.pi * t / T))
@@ -182,11 +213,15 @@ for i in range(num_points):
     wxh=gammahpun
     wyh=betahpun
     wzh=alphahpun
-    
+
     # Calcular las coordenadas x, y, z en función del tiempo para seguir un círculo
-    # xph1 = x_center + r * cos(2 * np.pi * funct)
-    # yph1 = y_center + r * sin(2 * np.pi * funct)
-    # zph1 = zinih  
+    # xd = x_center + r * cos(2 * np.pi * funct)
+    # yd = y_center + r * sin(2 * np.pi * funct)
+    # zd = zinih  
+
+    # xdp = -2 * np.pi * r * sin(2 * np.pi * funct)
+    # ydp = 2 * np.pi * r * cos(2 * np.pi * funct)
+    # zdp = 0
 
     xd = r * (np.arctan(p) + np.arctan(t - p)) * np.cos(w * t) + xinih
     yd = r * (np.arctan(p) + np.arctan(t - p)) * np.sin(w * t) + yinih
@@ -195,7 +230,7 @@ for i in range(num_points):
     xdp = r * (p/(1 + p**2) + (t-p)/(1+(t-p)**2)) * (-w) * sin(w * t)
     ydp = r * (p/(1 + p**2) + (t-p)/(1+(t-p)**2)) * w * cos(w * t)
     zdp = (h/2) * tanh(t - 3.5)
-    
+
     xph = zd
     yph = xd
     zph = yd
@@ -235,7 +270,8 @@ for i in range(num_points):
                     [Rthd[2,0], Rthd[2,1], Rthd[2,2], zph],
                     [0,         0,         0,         1]
                     ])
-    
+
+
     # Matriz de la pose deseada del marco h c.r al marco 0 
     T0hd = np.dot(T0t,Tthd)
     # Matriz de la pose deseada del marco 6 c.r al marco 0:
@@ -263,7 +299,7 @@ for i in range(num_points):
                      [0,  0,  0,  1]])
     
     # Calculo del estado de velocidad deseado de la herramiento respecto al marco 0
-    vph_t = np.array([xdp, ydp, zdp])
+    vph_t = np.array([xph, yph, zph])
     whh_t = np.array([wxh, wyh, wzh])
 
     vph_0 = np.dot(R0T, vph_t)
@@ -288,16 +324,16 @@ for i in range(num_points):
     ydpg[i] = ydp
     zdpg[i] = zdp
 
-    # Calculo de las variables articulares
+    # Cálculo de las variables articulares:
     th1 = atan2(e1 * PY, e1 * PX)
 
     z1 = -d2 + PX * cos(th1) + PY * sin(th1)
     b1 = 2 * (-(d4 * PZ) - r4 * z1)
     b2 = 2 * (PZ * r4 - d4 * z1)
-    b3 = d3**2 - d4**2 - PZ**2 - r4**2 - z1**2
+    b3 = d3 ** 2 - d4 ** 2 - PZ ** 2 - r4 ** 2 - z1 ** 2
 
-    SQ = (b1 * b3 + b2 * sqrt(b1**2 + b2**2 - b3**2) * e2) / (b1**2 + b2**2)
-    CQ = (b2 * b3 - b1 * sqrt(b1**2 + b2**2 - b3**2) * e2) / (b1**2 + b2**2)
+    SQ = (b1 * b3 + b2 * sqrt(b1 ** 2 + b2 ** 2 - b3 ** 2) * e2) / (b1 ** 2 + b2 ** 2)
+    CQ = (b2 * b3 - b1 * sqrt(b1 ** 2 + b2 ** 2 - b3 ** 2) * e2) / (b1 ** 2 + b2 ** 2)
 
     th2 = atan2(-((-PZ - r4 * CQ + d4 * SQ) / (d3)), (z1 - d4 * CQ - r4 * SQ) / (d3))
 
@@ -527,49 +563,6 @@ for i in range(num_points):
     TE6 = np.dot(TE0, T06)
     TEh = np.dot(TE0, T0h)
 
-    # Definición de matrices de transformación
-    T01 = np.array([
-        [cos(th1), -sin(th1), 0, 0],
-        [sin(th1), cos(th1), 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
-
-    T12 = np.array([
-        [cos(th2), -sin(th2), 0, d2],
-        [0, 0, -1, 0],
-        [sin(th2), cos(th2), 0, 0],
-        [0, 0, 0, 1]
-    ])
-
-    T23 = np.array([
-        [cos(th3), -sin(th3), 0, d3],
-        [sin(th3), cos(th3), 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
-
-    T34 = np.array([
-        [cos(th4), -sin(th4), 0, d4],
-        [0, 0, -1, -r4],
-        [sin(th4), cos(th4), 0, 0],
-        [0, 0, 0, 1]
-    ])
-
-    T45 = np.array([
-        [cos(th5), -sin(th5), 0, 0],
-        [0, 0, 1, 0],
-        [-sin(th5), -cos(th5), 0, 0],
-        [0, 0, 0, 1]
-    ])
-
-    T56 = np.array([
-        [cos(th6), -sin(th6), 0, 0],
-        [0, 0, -1, 0],
-        [sin(th6), cos(th6), 0, 0],
-        [0, 0, 0, 1]
-    ])
-
     # COORDENADAS DE LA FIGURA 1 (EMPLAZADO)
     x0, y0, z0 = TE0[:3, 3]
     x1, y1, z1 = TE1[:3, 3]
@@ -581,12 +574,12 @@ for i in range(num_points):
     xh, yh, zh = TEh[:3, 3]
 
     # Conversiones de ángulos a grados
-    th1g[i+1] = degrees(th1)
-    th2g[i+1] = degrees(th2)
-    th3g[i+1] = degrees(th3)
-    th4g[i+1] = degrees(th4)
-    th5g[i+1] = degrees(th5)
-    th6g[i+1] = degrees(th6)
+    th1g[i] = degrees(th1)
+    th2g[i] = degrees(th2)
+    th3g[i] = degrees(th3)
+    th4g[i] = degrees(th4)
+    th5g[i] = degrees(th5)
+    th6g[i] = degrees(th6)
     
     x0g[i] = x0
     x1g[i] = x1
@@ -614,7 +607,10 @@ for i in range(num_points):
     z5g[i] = z5
     z6g[i] = z6
     zhg[i] = zh
-    
+
+    tg[i] = t
+
+
     # Definición de cadenas cinemáticas
     r1x = [x0, x1]
     r1y = [y0, y1]
@@ -645,6 +641,30 @@ for i in range(num_points):
     rhz = [z6, zh]
 
     rz = [0, 0]
+
+    r1xg[i] = r1x
+    r2xg[i] = r2x
+    r3xg[i] = r3x
+    r4xg[i] = r4x
+    r5xg[i] = r5x
+    r6xg[i] = r6x
+    rhxg[i] = rhx
+
+    r1yg[i] = r1y
+    r2yg[i] = r2y
+    r3yg[i] = r3y
+    r4yg[i] = r4y
+    r5yg[i] = r5y
+    r6yg[i] = r6y
+    rhyg[i] = rhy
+
+    r1zg[i] = r1z
+    r2zg[i] = r2z
+    r3zg[i] = r3z
+    r4zg[i] = r4z
+    r5zg[i] = r5z
+    r6zg[i] = r6z
+    rhzg[i] = rhz
 
     # Definición de vástago
     ss1 = np.array([0, 0, -400, 1])
@@ -703,104 +723,242 @@ for i in range(num_points):
     e3z = [TE0[2, 3], xx8[2]]
 
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+# Visualización existente
+fig1 = plt.figure()
+ax = fig1.add_subplot(111, projection='3d')
+ax.plot(x1g, y1g, z1g)
+ax.plot(x2g, y2g, z2g)
+ax.plot(x3g, y3g, z3g)
+ax.plot(x4g, y4g, z4g)
+ax.plot(x5g, y5g, z5g)
+ax.plot(x6g, y6g, z6g)
+ax.plot(xhg, yhg, zhg)
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
-ax.set_xlim(-1000, 1000)
-ax.set_ylim(-1000, 1000)
-ax.set_zlim(-1000, 1000)
 
-# Función para actualizar la animación
-def update(num, x, y, z):
-    ax.cla()
-    ax.plot(x[:num], y[:num], z[:num], 'r-')
-    ax.scatter(x[num], y[num], z[num], color='b')
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_xlim(-1000, 1000)
-    ax.set_ylim(-1000, 1000)
-    ax.set_zlim(-1000, 1000)
+fig2 = plt.figure()
+# Crear subplots adicionales
+ax1 = fig2.add_subplot(323)
+ax1.plot(tg, x6g, 'r')
+ax1.plot(tg, xhg, 'b')
+ax1.set_title('x vs t')
+ax1.set_xlabel('t')
+ax1.set_ylabel('x')
 
-# Animación
-ani = plt.FuncAnimation(fig, update, frames=num_points, fargs=(xdg, ydg, zdg), interval=50)
+ax2 = fig2.add_subplot(324)
+ax2.plot(tg, y6g, 'r')
+ax2.plot(tg, yhg, 'b')
+ax2.set_title('y vs t')
+ax2.set_xlabel('t')
+ax2.set_ylabel('y')
+
+ax3 = fig2.add_subplot(325)
+ax3.plot(tg, z6g, 'r')
+ax3.plot(tg, zhg, 'b')
+ax3.set_title('z vs t')
+ax3.set_xlabel('t')
+ax3.set_ylabel('z')
+
+# Ajustar el espaciado entre subplots
+plt.tight_layout()
+
+# Mostrar la gráfica
 plt.show()
 
+# # Inicializar la figura y el eje 3D
+# fig3 = plt.figure()
+# ax = fig3.add_subplot(111, projection='3d')
 
-# # Crear la figura 3D
-# fig = plt.figure(figsize=(10, 8))
-# ax = fig.add_subplot(111, projection='3d')
+# # Crear las líneas iniciales
+# line1, = ax.plot(x1g, y1g, z1g)
+# line2, = ax.plot(x2g, y2g, z2g)
+# line3, = ax.plot(x3g, y3g, z3g)
+# line4, = ax.plot(x4g, y4g, z4g)
+# line5, = ax.plot(x5g, y5g, z5g)
+# line6, = ax.plot(x6g, y6g, z6g)
+# line7, = ax.plot(xhg, yhg, zhg)
 
-# # Graficar la trayectoria en 3D
-# ax.plot3D(xdg, ydg, zdg, label='Trayectoria deseada', color='blue')
+# # Función de actualización para la animación
+# def update(frame):
+#     # Actualizar los datos de las líneas originales
+#     line1.set_data(x1g[:frame], y1g[:frame])
+#     line1.set_3d_properties(z1g[:frame])
 
-# # Etiquetas de los ejes
-# ax.set_xlabel('X')
-# ax.set_ylabel('Y')
-# ax.set_zlabel('Z')
+#     line2.set_data(x2g[:frame], y2g[:frame])
+#     line2.set_3d_properties(z2g[:frame])
 
-# # Título de la gráfica
-# ax.set_title('Trayectorias en 3D')
+#     line3.set_data(x3g[:frame], y3g[:frame])
+#     line3.set_3d_properties(z3g[:frame])
 
-# # Mostrar la leyenda
-# ax.legend()
+#     line4.set_data(x4g[:frame], y4g[:frame])
+#     line4.set_3d_properties(z4g[:frame])
 
-# # Mostrar la gráfica
+#     line5.set_data(x5g[:frame], y5g[:frame])
+#     line5.set_3d_properties(z5g[:frame])
+
+#     line6.set_data(x6g[:frame], y6g[:frame])
+#     line6.set_3d_properties(z6g[:frame])
+
+#     line7.set_data(xhg[:frame], yhg[:frame])
+#     line7.set_3d_properties(zhg[:frame])
+
+#     return line1, line2, line3, line4, line5, line6, line7
+
+# # Función de actualización para la animación 3D
+# def update_3d(frame):
+#     update(frame)
+#     return line1, line2, line3, line4, line5, line6, line7
+
+# # Crear la animación
+# ani = FuncAnimation(fig3, update_3d, frames=len(x1g), interval=50)
+
+# # Mostrar la animación
 # plt.show()
 
-# # Gráficas en función del tiempo
-# plt.figure(figsize=(8, 6))
-# plt.plot(tg, xdg, label='xd')
-# plt.xlabel('t')
-# plt.ylabel('xd')
-# plt.title('xd vs t')
-# plt.legend()
-# plt.grid(True)
+
+# # Inicializar la figura y el eje 3D
+# fig3 = plt.figure()
+# ax = fig3.add_subplot(111, projection='3d')
+
+# # Crear las líneas iniciales para los eslabones
+# lines = [ax.plot([], [], [])[0] for _ in range(7)]
+
+# # Función de inicialización para la animación
+# def init():
+#     for line in lines:
+#         line.set_data([], [])
+#         line.set_3d_properties([])
+#     return lines
+
+# # Función de actualización para la animación
+# def update(frame):
+#     # Actualizar las coordenadas de los extremos de los eslabones
+#     coordinates = [
+#         (x1g[frame], y1g[frame], z1g[frame]),
+#         (x2g[frame], y2g[frame], z2g[frame]),
+#         (x3g[frame], y3g[frame], z3g[frame]),
+#         (x4g[frame], y4g[frame], z4g[frame]),
+#         (x5g[frame], y5g[frame], z5g[frame]),
+#         (x6g[frame], y6g[frame], z6g[frame]),
+#         (xhg[frame], yhg[frame], zhg[frame])
+#     ]
+
+#     # Actualizar las líneas que representan los eslabones
+#     for i, line in enumerate(lines):
+#         if i + 1 < len(coordinates):
+#             line.set_data([coordinates[i][0], coordinates[i+1][0]], [coordinates[i][1], coordinates[i+1][1]])
+#             line.set_3d_properties([coordinates[i][2], coordinates[i+1][2]])
+
+#     return lines
+
+# # Configurar los límites de los ejes XYZ con un margen de 200 unidades
+# margin = 200
+# xmin = min(x1g.min(), xhg.min()) - margin
+# xmax = max(x1g.max(), xhg.max()) + margin
+# ymin = min(y1g.min(), yhg.min()) - margin
+# ymax = max(y1g.max(), yhg.max()) + margin
+# zmin = min(z1g.min(), zhg.min()) - margin
+# zmax = max(z1g.max(), zhg.max()) + margin
+
+# ax.set_xlim([xmin, xmax])
+# ax.set_ylim([ymin, ymax])
+# ax.set_zlim([zmin, zmax])
+
+# # Crear la animación
+# ani = FuncAnimation(fig3, update, frames=len(x1g), init_func=init, interval=50)
+
+# # Mostrar la animación
 # plt.show()
 
-# plt.figure(figsize=(8, 6))
-# plt.plot(tg, ydg, label='yd')
-# plt.xlabel('t')
-# plt.ylabel('yd')
-# plt.title('yd vs t')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
 
-# plt.figure(figsize=(8, 6))
-# plt.plot(tg, zdg, label='zd')
-# plt.xlabel('t')
-# plt.ylabel('zd')
-# plt.title('zd vs t')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+# Inicializar la figura y el eje 3D
+fig3 = plt.figure()
+ax = fig3.add_subplot(111, projection='3d')
 
-# plt.figure(figsize=(8, 6))
-# plt.plot(tg, xdpg, label='xdp')
-# plt.xlabel('t')
-# plt.ylabel('xdp')
-# plt.title('xdp vs t')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+# Crear las líneas iniciales para los eslabones
+lines = [ax.plot([], [], [])[0] for _ in range(7)]
 
-# plt.figure(figsize=(8, 6))
-# plt.plot(tg, ydpg, label='ydp')
-# plt.xlabel('t')
-# plt.ylabel('ydp')
-# plt.title('ydp vs t')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+# Función de inicialización para la animación
+def init():
+    for line in lines:
+        line.set_data([], [])
+        line.set_3d_properties([])
+    return lines
 
-# plt.figure(figsize=(8, 6))
-# plt.plot(tg, zdpg, label='zdp')
-# plt.xlabel('t')
-# plt.ylabel('zdp')
-# plt.title('zdp vs t')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+# Función de actualización para la animación
+def update(frame):
+    # Actualizar las coordenadas de los extremos de los eslabones
+    coordinates = [
+        (x1g[frame], y1g[frame], z1g[frame]),
+        (x2g[frame], y2g[frame], z2g[frame]),
+        (x3g[frame], y3g[frame], z3g[frame]),
+        (x4g[frame], y4g[frame], z4g[frame]),
+        (x5g[frame], y5g[frame], z5g[frame]),
+        (x6g[frame], y6g[frame], z6g[frame]),
+        (xhg[frame], yhg[frame], zhg[frame])
+    ]
+
+    # Actualizar las líneas que representan los eslabones
+    for i, line in enumerate(lines):
+        if i + 1 < len(coordinates):
+            line.set_data([coordinates[i][0], coordinates[i+1][0]], [coordinates[i][1], coordinates[i+1][1]])
+            line.set_3d_properties([coordinates[i][2], coordinates[i+1][2]])
+
+    return lines
+
+# Configurar los límites de los ejes XYZ con un margen de 200 unidades
+margin = 200
+xmin = min(x1g.min(), xhg.min()) - margin
+xmax = max(x1g.max(), xhg.max()) + margin
+ymin = min(y1g.min(), yhg.min()) - margin
+ymax = max(y1g.max(), yhg.max()) + margin
+zmin = min(z1g.min(), zhg.min()) - margin
+zmax = max(z1g.max(), zhg.max()) + margin
+
+ax.set_xlim([xmin, xmax])
+ax.set_ylim([ymin, ymax])
+ax.set_zlim([zmin, zmax])
+
+# Crear las líneas iniciales para la trayectoria de las articulaciones
+line1, = ax.plot([], [], [])
+line2, = ax.plot([], [], [])
+line3, = ax.plot([], [], [])
+line4, = ax.plot([], [], [])
+line5, = ax.plot([], [], [])
+line6, = ax.plot([], [], [])
+line7, = ax.plot([], [], [])
+
+# Función de actualización para la trayectoria de las articulaciones
+def update_joint_trajectory(frame):
+    line1.set_data(x1g[:frame], y1g[:frame])
+    line1.set_3d_properties(z1g[:frame])
+
+    line2.set_data(x2g[:frame], y2g[:frame])
+    line2.set_3d_properties(z2g[:frame])
+
+    line3.set_data(x3g[:frame], y3g[:frame])
+    line3.set_3d_properties(z3g[:frame])
+
+    line4.set_data(x4g[:frame], y4g[:frame])
+    line4.set_3d_properties(z4g[:frame])
+
+    line5.set_data(x5g[:frame], y5g[:frame])
+    line5.set_3d_properties(z5g[:frame])
+
+    line6.set_data(x6g[:frame], y6g[:frame])
+    line6.set_3d_properties(z6g[:frame])
+
+    line7.set_data(xhg[:frame], yhg[:frame])
+    line7.set_3d_properties(zhg[:frame])
+
+    return line1, line2, line3, line4, line5, line6, line7
+
+# Crear la animación de los eslabones
+ani1 = FuncAnimation(fig3, update, frames=len(x1g), init_func=init, interval=50)
+
+# Crear la animación de la trayectoria de las articulaciones
+ani2 = FuncAnimation(fig3, update_joint_trajectory, frames=len(x1g), interval=50)
+
+# Mostrar la animación
+plt.show()
